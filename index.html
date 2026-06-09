@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reativação de Pacientes | Dra. Caroline Lima</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f1;min-height:100vh;padding:16px}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-size:1.3rem;font-weight:700;color:#1a1a2e;margin-bottom:2px}
+.subtitle{font-size:0.8rem;color:#888;font-style:italic}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.stat{background:#fff;border-radius:10px;padding:12px 14px;border:1px solid #e8e8e8}
+.stat-label{font-size:11px;color:#888;margin-bottom:3px}
+.stat-val{font-size:22px;font-weight:700;color:#1a1a2e}
+.progress-bg{background:#e0e0e0;border-radius:99px;height:7px;overflow:hidden;margin-bottom:16px}
+.progress-bar{height:100%;background:#1D9E75;border-radius:99px;transition:width .4s}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.filters input{flex:1;min-width:160px;padding:7px 11px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff}
+.filter-btn{padding:5px 14px;border-radius:99px;border:1px solid #ddd;background:#fff;font-size:12px;cursor:pointer}
+.filter-btn.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e;font-weight:600}
+.section-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+.section-count{background:#eee;border-radius:99px;padding:2px 9px;font-size:11px;color:#666}
+.cards{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
+.card{background:#fff;border-radius:12px;padding:13px 15px;border:1px solid #eee;border-left:4px solid #ddd}
+.card.alta{border-left-color:#534AB7}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.card-left{flex:1;min-width:0}
+.card-name{font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px}
+.badge{font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600}
+.b-alta{background:#EEEDFE;color:#3C3489}
+.b-caxias{background:#FAEEDA;color:#633806}
+.b-ipanema{background:#E1F5EE;color:#085041}
+.b-barra{background:#E6F1FB;color:#0C447C}
+.b-online{background:#f0f0ee;color:#555}
+.meta{font-size:12px;color:#888}
+.card-right{display:flex;flex-direction:column;gap:6px;align-items:flex-end;min-width:148px}
+.status-sel{border:1px solid #ddd;border-radius:8px;padding:5px 8px;font-size:12px;background:#f8f8f8;color:#333;cursor:pointer;width:100%}
+.wa-btn{display:inline-flex;align-items:center;gap:5px;background:#25d366;color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;text-decoration:none}
+.obs-row{margin-top:8px}
+.obs-inp{width:100%;border:1px solid #eee;border-radius:7px;padding:5px 9px;font-size:12px;color:#444;background:#fafafa}
+.msg-section{background:#fff;border-radius:14px;padding:18px;margin-top:20px;border:1px solid #eee}
+.msg-section h2{font-size:1rem;color:#1a1a2e;margin-bottom:3px;font-weight:700}
+.msg-section p{font-size:12px;color:#999;margin-bottom:10px}
+.msg-section textarea{width:100%;border:1px solid #ddd;border-radius:9px;padding:11px 13px;font-size:13px;color:#333;resize:vertical;line-height:1.6;background:#fafafa}
+.copy-btn{margin-top:9px;background:#1a1a2e;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;cursor:pointer}
+.copy-btn.ok{background:#1D9E75}
+.footer{text-align:center;font-size:11px;color:#bbb;margin-top:18px}
+@media(max-width:520px){
+  .summary{grid-template-columns:repeat(2,1fr)}
+  .card-right{min-width:130px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="margin-bottom:16px">
+    <h1>Reativação de Pacientes</h1>
+    <div class="subtitle">Consultório Dra. Caroline Lima · 82 pacientes · Atualizado em 09/06/2026</div>
+  </div>
+
+  <div class="summary">
+    <div class="stat"><div class="stat-label">Total</div><div class="stat-val" id="s-total">79</div></div>
+    <div class="stat"><div class="stat-label">Alta prioridade</div><div class="stat-val" id="s-alta" style="color:#534AB7">14</div></div>
+    <div class="stat"><div class="stat-label">Contactadas</div><div class="stat-val" id="s-cont">0</div></div>
+    <div class="stat"><div class="stat-label">Agendadas</div><div class="stat-val" id="s-agen" style="color:#1D9E75">0</div></div>
+  </div>
+  <div class="progress-bg"><div class="progress-bar" id="prog" style="width:0%"></div></div>
+
+  <div class="filters">
+    <input type="text" id="busca" placeholder="Buscar por nome..." oninput="render()">
+    <button class="filter-btn active" onclick="setF('todos',this)">Todas</button>
+    <button class="filter-btn" onclick="setF('pendente',this)">Pendente</button>
+    <button class="filter-btn" onclick="setF('contactada',this)">Contactada</button>
+    <button class="filter-btn" onclick="setF('agendou',this)">Agendou</button>
+    <button class="filter-btn" onclick="setF('nao_respondeu',this)">Não respondeu</button>
+  </div>
+
+  <div id="lista"></div>
+
+  <div class="msg-section">
+    <h2>Mensagem padrão</h2>
+    <p>O botão WhatsApp já abre com essa mensagem e o nome da paciente</p>
+    <textarea id="msg" rows="4">Oi, [NOME]! Tudo bem?
+Aqui é a Edi, do consultório da Dra. Caroline Lima.
+A Dra. pediu para eu entrar em contato — faz um tempo que você não vem, e ela quer saber como você está.
+Ela tem horários disponíveis essa semana. Quando você consegue?</textarea>
+    <button class="copy-btn" id="copybtn" onclick="copiar()">Copiar mensagem</button>
+  </div>
+
+  <p class="footer">Alterações salvas automaticamente neste dispositivo</p>
+</div>
+
+<script>
+var KEY='reat-edi-v1';
+var BASE=[{id:1,nome:"CRISTIANE MORAES DO NASCIMENTO",unidade:"CAXIAS",mes:"Janeiro/26",mo:"2026-01",ult:"08/01/2026",tipo:"Colocação de DIU",pri:"ALTA",wa:"5521970621330"},
+  {id:2,nome:"Viviane da Silva Santana",unidade:"IPANEMA",mes:"Dezembro/25",mo:"2025-12",ult:"19/12/2025",tipo:"Procedimento",pri:"ALTA",wa:"5521990228346"},
+  {id:3,nome:"Maira Beatriz Hernandez Moran",unidade:"IPANEMA",mes:"Dezembro/25",mo:"2025-12",ult:"12/12/2025",tipo:"Procedimento",pri:"ALTA",wa:"5521997475081"},
+  {id:4,nome:"Veronica França Antunes",unidade:"IPANEMA",mes:"Dezembro/25",mo:"2025-12",ult:"05/12/2025",tipo:"Colocação de DIU",pri:"ALTA",wa:"5521998221888"},
+  {id:5,nome:"Daniele Maia Fernandes",unidade:"IPANEMA",mes:"Novembro/25",mo:"2025-11",ult:"28/11/2025",tipo:"VH + Retirada de Pólipo",pri:"ALTA",wa:"5521972151406"},
+  {id:6,nome:"Bianca Siqueira Porto",unidade:"CAXIAS",mes:"Outubro/25",mo:"2025-10",ult:"30/10/2025",tipo:"Retorno pós-polipectomia",pri:"ALTA",wa:"5521986487077"},
+  {id:7,nome:"Alina Zemlianskaia",unidade:"CAXIAS",mes:"Setembro/25",mo:"2025-09",ult:"18/09/2025",tipo:"Colocação de DIU",pri:"ALTA",wa:"5521980141084"},
+  {id:8,nome:"Thayná Bandeira Diepes",unidade:"BARRA",mes:"Agosto/25",mo:"2025-08",ult:"26/08/2025",tipo:"Procedimento",pri:"ALTA",wa:"5521987567763"},
+  {id:9,nome:"Yanca Nogueira da Silva",unidade:"ONLINE",mes:"Junho/25",mo:"2025-06",ult:"13/06/2025",tipo:"Retorno",pri:"ALTA",wa:"5521979099785"},
+  {id:10,nome:"Thais Pires Trindade",unidade:"CAXIAS",mes:"Maio/25",mo:"2025-05",ult:"08/05/2025",tipo:"Retorno DIU",pri:"ALTA",wa:"5521973993904"},
+  {id:11,nome:"Stefanie Lima do Nascimento",unidade:"IPANEMA",mes:"Maio/25",mo:"2025-05",ult:"02/05/2025",tipo:"VH sem sedação",pri:"ALTA",wa:"5521964359020"},
+  {id:12,nome:"ADRIANA BATISTA SATURNINO",unidade:"ONLINE",mes:"Janeiro/26",mo:"2026-01",ult:"21/01/2026",tipo:"Retorno",pri:"MÉDIA",wa:"5521998230230"},
+  {id:13,nome:"Eliana de Melo Martins",unidade:"ONLINE",mes:"Janeiro/26",mo:"2026-01",ult:"21/01/2026",tipo:"Retorno",pri:"MÉDIA",wa:"5521988692096"},
+  {id:14,nome:"Rebecca de Melo Martins dos Santos",unidade:"ONLINE",mes:"Janeiro/26",mo:"2026-01",ult:"21/01/2026",tipo:"Retorno",pri:"MÉDIA",wa:"5521988692096"},
+  {id:15,nome:"Bernadete Pirozi Lichote",unidade:"ONLINE",mes:"Janeiro/26",mo:"2026-01",ult:"14/01/2026",tipo:"Retorno",pri:"MÉDIA",wa:"5521994158114"},
+  {id:16,nome:"Marianne Souza da Silva Santos",unidade:"ONLINE",mes:"Janeiro/26",mo:"2026-01",ult:"14/01/2026",tipo:"Retorno",pri:"MÉDIA",wa:"5521989133459"},
+  {id:17,nome:"SILVANA APARECIDA FERREIRA",unidade:"ONLINE",mes:"Janeiro/26",mo:"2026-01",ult:"06/01/2026",tipo:"Retorno",pri:"MÉDIA",wa:"5521974976881"},
+  {id:18,nome:"Andreza Roriz de Souza Martins Gouveia",unidade:"CAXIAS",mes:"Dezembro/25",mo:"2025-12",ult:"18/12/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5521969966439"},
+  {id:19,nome:"Aristhela Nóbrega Amaral",unidade:"CAXIAS",mes:"Dezembro/25",mo:"2025-12",ult:"11/12/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5521992735209"},
+  {id:20,nome:"Maria da Glória Inácio Pereira Corrêa",unidade:"CAXIAS",mes:"Dezembro/25",mo:"2025-12",ult:"11/12/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521965184305"},
+  {id:21,nome:"Tairini Dantas dos Santos",unidade:"ONLINE",mes:"Dezembro/25",mo:"2025-12",ult:"10/12/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521987748560"},
+  {id:22,nome:"Tatiana Teodoro",unidade:"IPANEMA",mes:"Dezembro/25",mo:"2025-12",ult:"12/12/2025",tipo:"Procedimento",pri:"MÉDIA",wa:"5521987040939"},
+  {id:23,nome:"Fernanda Casemiro Pereira",unidade:"ONLINE",mes:"Novembro/25",mo:"2025-11",ult:"14/11/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521982297904"},
+  {id:24,nome:"Tatiane Almeida Diorio",unidade:"ONLINE",mes:"Novembro/25",mo:"2025-11",ult:"14/11/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5561490547607"},
+  {id:25,nome:"Eliane de Sousa Oliveira",unidade:"ONLINE",mes:"Novembro/25",mo:"2025-11",ult:"04/11/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5521988784762"},
+  {id:26,nome:"Gabriele Cristina Martins Inacio da Rocha",unidade:"ONLINE",mes:"Novembro/25",mo:"2025-11",ult:"01/11/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521995499606"},
+  {id:27,nome:"Marcia Martins Queiroz",unidade:"CAXIAS",mes:"Outubro/25",mo:"2025-10",ult:"30/10/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5521966096941"},
+  {id:28,nome:"MARIA SIMONE ALVES DE LIMA",unidade:"ONLINE",mes:"Outubro/25",mo:"2025-10",ult:"27/10/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5521998543550"},
+  {id:29,nome:"TATIANA MACHADO COSTA",unidade:"ONLINE",mes:"Outubro/25",mo:"2025-10",ult:"27/10/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5521981267707"},
+  {id:30,nome:"Vasti Maria da Silva",unidade:"ONLINE",mes:"Outubro/25",mo:"2025-10",ult:"28/10/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521979269540"},
+  {id:31,nome:"REBECA CASTRO DA SILVEIRA",unidade:"ONLINE",mes:"Outubro/25",mo:"2025-10",ult:"22/10/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521970093822"},
+  {id:32,nome:"Victoria Maria Gomes Ferreira",unidade:"ONLINE",mes:"Outubro/25",mo:"2025-10",ult:"22/10/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521995453212"},
+  {id:33,nome:"Ágatha Queiroz Soares",unidade:"IPANEMA",mes:"Outubro/25",mo:"2025-10",ult:"10/10/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5521993291570"},
+  {id:34,nome:"Daniele Bastos da Silva",unidade:"ONLINE",mes:"Outubro/25",mo:"2025-10",ult:"01/10/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521991126617"},
+  {id:35,nome:"ROBERTA MOURA DA SILVEIRA",unidade:"ONLINE",mes:"Outubro/25",mo:"2025-10",ult:"01/10/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521989434897"},
+  {id:36,nome:"Jiawen Lin",unidade:"BARRA",mes:"Setembro/25",mo:"2025-09",ult:"23/09/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521996885888"},
+  {id:37,nome:"Marcela Maria Gomes Quintanilha",unidade:"ONLINE",mes:"Setembro/25",mo:"2025-09",ult:"17/09/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521976341345"},
+  {id:38,nome:"Suyanne Luiz Costa",unidade:"ONLINE",mes:"Setembro/25",mo:"2025-09",ult:"17/09/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521975584105"},
+  {id:39,nome:"Arcangela Rocha Mota Santos",unidade:"ONLINE",mes:"Setembro/25",mo:"2025-09",ult:"16/09/2025",tipo:"Retorno",pri:"MÉDIA",wa:"353894982707"},
+  {id:40,nome:"Fabiana Ascari Rizi",unidade:"CAXIAS",mes:"Setembro/25",mo:"2025-09",ult:"11/09/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5521991026567"},
+  {id:41,nome:"CAROLINE BELLUCIO DECEMBRINO",unidade:"BARRA",mes:"Setembro/25",mo:"2025-09",ult:"09/09/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5521979110762"},
+  {id:42,nome:"Sandy de Oliveira de Melo Wandermur",unidade:"ONLINE",mes:"Agosto/25",mo:"2025-08",ult:"12/08/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521983505568"},
+  {id:43,nome:"Mariana Luzes Souza Netto",unidade:"ONLINE",mes:"Agosto/25",mo:"2025-08",ult:"01/08/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521983221746"},
+  {id:44,nome:"Roberta Cristina da Silva Pontes",unidade:"ONLINE",mes:"Agosto/25",mo:"2025-08",ult:"01/08/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5521976168368"},
+  {id:45,nome:"Thainá das Graças Ramos",unidade:"ONLINE",mes:"Agosto/25",mo:"2025-08",ult:"01/08/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521979194504"},
+  {id:46,nome:"Lívia Soares Mello",unidade:"CAXIAS",mes:"Julho/25",mo:"2025-07",ult:"24/07/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521989957179"},
+  {id:47,nome:"Taisa de Menezes Damas",unidade:"CAXIAS",mes:"Julho/25",mo:"2025-07",ult:"17/07/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521973019765"},
+  {id:48,nome:"Mariana Simões Doro Pereira",unidade:"ONLINE",mes:"Julho/25",mo:"2025-07",ult:"15/07/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5531989092866"},
+  {id:49,nome:"Raquel Soares da Silva",unidade:"ONLINE",mes:"Julho/25",mo:"2025-07",ult:"09/07/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521969119498"},
+  {id:50,nome:"Layne Da Silva Conceição",unidade:"CAXIAS",mes:"Julho/25",mo:"2025-07",ult:"03/07/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521975479108"},
+  {id:51,nome:"Manoelle Sales Dionizio",unidade:"CAXIAS",mes:"Junho/25",mo:"2025-06",ult:"26/06/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5521976785976"},
+  {id:52,nome:"Marcia Christina Argento Cavalcante",unidade:"ONLINE",mes:"Junho/25",mo:"2025-06",ult:"27/06/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521982898386"},
+  {id:53,nome:"Terezinha da Rocha Brito",unidade:"CAXIAS",mes:"Junho/25",mo:"2025-06",ult:"26/06/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521969025851"},
+  {id:54,nome:"Camila Gonçalves Moreira",unidade:"ONLINE",mes:"Junho/25",mo:"2025-06",ult:"10/06/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521981352528"},
+  {id:55,nome:"Carla Sabrina Gomez",unidade:"IPANEMA",mes:"Maio/25",mo:"2025-05",ult:"23/05/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5597981147746"},
+  {id:56,nome:"Carolina Vanessa Da Silva Damas",unidade:"CAXIAS",mes:"Maio/25",mo:"2025-05",ult:"08/05/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521996593554"},
+  {id:57,nome:"Isabelle Rocha Domingues",unidade:"BARRA",mes:"Maio/25",mo:"2025-05",ult:"06/05/2025",tipo:"Rotina",pri:"MÉDIA",wa:"5521985440902"},
+  {id:58,nome:"Sueli Bindi Souza Medeiros",unidade:"ONLINE",mes:"Abril/25",mo:"2025-04",ult:"29/04/2025",tipo:"Retorno",pri:"MÉDIA",wa:"5521977338254"},
+  {id:59,nome:"Jessica Araujo Soares",unidade:"IPANEMA",mes:"Fevereiro/26",mo:"2026-02",ult:"06/02/2026",tipo:"Polipectomia com Alca",pri:"ALTA",wa:"5521979311873",status:"pendente",obs:""},
+  {id:60,nome:"Ramya Faria Mafort",unidade:"IPANEMA",mes:"Fevereiro/26",mo:"2026-02",ult:"06/02/2026",tipo:"Consulta Ginecologica",pri:"ALTA",wa:"5521981136195",status:"pendente",obs:""},
+  {id:61,nome:"Fernanda Albuquerque de Andrade",unidade:"ONLINE",mes:"Fevereiro/26",mo:"2026-02",ult:"11/02/2026",tipo:"Retorno",pri:"ALTA",wa:"5521980843938",status:"pendente",obs:""},
+  {id:62,nome:"Ana Beatriz Nogueira Silva",unidade:"IPANEMA",mes:"Fevereiro/26",mo:"2026-02",ult:"20/02/2026",tipo:"Procedimento - Retirada DIU",pri:"ALTA",wa:"5521972697323",status:"pendente",obs:""},
+  {id:63,nome:"Diana Geyer de Rezende",unidade:"ONLINE",mes:"Fevereiro/26",mo:"2026-02",ult:"25/02/2026",tipo:"Rotina",pri:"ALTA",wa:"5521981198429",status:"pendente",obs:""},
+  {id:64,nome:"Safira Dantas Amaral",unidade:"CAXIAS",mes:"Fevereiro/26",mo:"2026-02",ult:"05/02/2026",tipo:"Rotina",pri:"MEDIA",wa:"5521964764649",status:"pendente",obs:""},
+  {id:65,nome:"Claudia Maria Gomes Flausino",unidade:"CAXIAS",mes:"Fevereiro/26",mo:"2026-02",ult:"12/02/2026",tipo:"Rotina",pri:"MEDIA",wa:"5521968172534",status:"pendente",obs:""},
+  {id:66,nome:"Emilly Vitoria Grijo Cordeiro",unidade:"CAXIAS",mes:"Fevereiro/26",mo:"2026-02",ult:"12/02/2026",tipo:"Rotina",pri:"MEDIA",wa:"5521976780446",status:"pendente",obs:""},
+  {id:67,nome:"Roselane Amorim da Silva",unidade:"CAXIAS",mes:"Fevereiro/26",mo:"2026-02",ult:"12/02/2026",tipo:"Rotina",pri:"MEDIA",wa:"5521993714457",status:"pendente",obs:""},
+  {id:68,nome:"ANA PAULA RUFINO CASTILHO",unidade:"CAXIAS",mes:"Fevereiro/26",mo:"2026-02",ult:"19/02/2026",tipo:"Consulta Ginecologica",pri:"MEDIA",wa:"5521993620930",status:"pendente",obs:""},
+  {id:69,nome:"Cintia Garcia Grave",unidade:"BARRA",mes:"Fevereiro/26",mo:"2026-02",ult:"24/02/2026",tipo:"Retorno",pri:"MEDIA",wa:"5521983180553",status:"pendente",obs:""},
+  {id:70,nome:"Alice Nascimento Saint-Martin",unidade:"IPANEMA",mes:"Marco/26",mo:"2026-03",ult:"06/03/2026",tipo:"VH + Colocacao de DIU c/sedacao",pri:"ALTA",wa:"5521988656014",status:"pendente",obs:""},
+  {id:71,nome:"Emanoelle da Silva Paula",unidade:"IPANEMA",mes:"Marco/26",mo:"2026-03",ult:"06/03/2026",tipo:"VH Fertilidade c/sedacao",pri:"ALTA",wa:"5521970144401",status:"pendente",obs:""},
+  {id:72,nome:"Sarah Helen Castro da Silveira",unidade:"ONLINE",mes:"Marco/26",mo:"2026-03",ult:"09/03/2026",tipo:"Retorno",pri:"ALTA",wa:"5521982294453",status:"pendente",obs:""},
+  {id:73,nome:"Camila Pires Silva",unidade:"BARRA",mes:"Marco/26",mo:"2026-03",ult:"10/03/2026",tipo:"Consulta Ginecologica",pri:"ALTA",wa:"5531994773459",status:"pendente",obs:""},
+  {id:74,nome:"Ana Carla Rangel Falcon",unidade:"ONLINE",mes:"Marco/26",mo:"2026-03",ult:"11/03/2026",tipo:"Retorno",pri:"ALTA",wa:"5521992799367",status:"pendente",obs:""},
+  {id:75,nome:"Ana Paula dos Santos Barreto",unidade:"ONLINE",mes:"Marco/26",mo:"2026-03",ult:"11/03/2026",tipo:"Retorno",pri:"ALTA",wa:"5521979539699",status:"pendente",obs:""},
+  {id:76,nome:"Fabiane Conceicao das Chagas Portugal",unidade:"CAXIAS",mes:"Marco/26",mo:"2026-03",ult:"12/03/2026",tipo:"Colocacao de DIU",pri:"ALTA",wa:"5521980362833",status:"pendente",obs:""},
+  {id:77,nome:"REGINA ESTELA DE SOUZA CARNEIRO",unidade:"BARRA",mes:"Marco/26",mo:"2026-03",ult:"10/03/2026",tipo:"Consulta Ginecologica",pri:"MEDIA",wa:"5521985355005",status:"pendente",obs:""},
+  {id:78,nome:"Daniele dos Santos Matheus",unidade:"ONLINE",mes:"Marco/26",mo:"2026-03",ult:"03/03/2026",tipo:"Rotina",pri:"MEDIA",wa:"5511992986435",status:"pendente",obs:""},
+  {id:79,nome:"Marlene Fernandes Neves Vieira",unidade:"BARRA",mes:"Marco/26",mo:"2026-03",ult:"03/03/2026",tipo:"Retorno",pri:"MEDIA",wa:"5577998003112",status:"pendente",obs:""},
+  {id:80,nome:"Lucilene de Aguiar Oliveira Pereira",unidade:"BARRA",mes:"Marco/26",mo:"2026-03",ult:"10/03/2026",tipo:"Rotina",pri:"MEDIA",wa:"5521972462895",status:"pendente",obs:""},
+  {id:81,nome:"Claudia Rosa Sayas Medina",unidade:"ONLINE",mes:"Marco/26",mo:"2026-03",ult:"11/03/2026",tipo:"Retorno",pri:"MEDIA",wa:"5521975675542",status:"pendente",obs:""},
+  {id:82,nome:"ISABEL SIQUEIRA CONCEIÇÃO",unidade:"BARRA",mes:"Outubro/25",mo:"2025-10",ult:"07/10/2025",tipo:"Rotina",pri:"MEDIA",wa:"5521984664818",status:"pendente",obs:""}];
+var MES_ORDER=['2026-03','2026-02','2026-01','2025-12','2025-11','2025-10','2025-09','2025-08','2025-07','2025-06','2025-05','2025-04'];
+var STATUS_OPTS=[['pendente','Pendente'],['contactada','Contactada'],['agendou','Agendou'],['nao_respondeu','Não respondeu'],['sem_interesse','Sem interesse']];
+var WA_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="white" style="vertical-align:middle"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
+
+var data,filtro='todos';
+function load(){
+  try{
+    var s=localStorage.getItem(KEY);
+    if(s){data=JSON.parse(s);}
+    else{data=BASE.map(function(p){return Object.assign({},p,{status:'pendente',obs:'',dataContato:''});});}
+  }catch(e){data=BASE.map(function(p){return Object.assign({},p,{status:'pendente',obs:'',dataContato:''});});}
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){}}
+function upd(id,f,v){
+  data=data.map(function(p){if(p.id===id){var n=Object.assign({},p);n[f]=v;return n;}return p;});
+  save();updateStats();render();
+}
+function getMsg(){return document.getElementById('msg').value;}
+function waLink(p){
+  var m=getMsg().replace('[NOME]',p.nome.split(' ')[0]);
+  return 'https://wa.me/'+p.wa+'?text='+encodeURIComponent(m);
+}
+function setF(f,btn){
+  filtro=f;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');render();
+}
+function updateStats(){
+  var tot=data.length;
+  var alta=data.filter(function(p){return p.pri==='ALTA';}).length;
+  var cont=data.filter(function(p){return p.status==='contactada';}).length;
+  var agen=data.filter(function(p){return p.status==='agendou';}).length;
+  document.getElementById('s-total').textContent=tot;
+  document.getElementById('s-alta').textContent=alta;
+  document.getElementById('s-cont').textContent=cont;
+  document.getElementById('s-agen').textContent=agen;
+  document.getElementById('prog').style.width=Math.round(agen/tot*100)+'%';
+}
+function render(){
+  var busca=document.getElementById('busca').value.toLowerCase();
+  var filtered=data.filter(function(p){
+    if(filtro!=='todos'&&p.status!==filtro)return false;
+    if(busca&&p.nome.toLowerCase().indexOf(busca)<0)return false;
+    return true;
+  });
+  var html='';
+  MES_ORDER.forEach(function(mo){
+    var grupo=filtered.filter(function(p){return p.mo===mo;});
+    if(!grupo.length)return;
+    var tot_mes=data.filter(function(p){return p.mo===mo;}).length;
+    html+='<div class="section-head">'+grupo[0].mes+'<span class="section-count">'+grupo.length+' / '+tot_mes+'</span></div><div class="cards">';
+    grupo.forEach(function(p){
+      var sc=p.status;
+      var bl=sc==='agendou'?'#1D9E75':sc==='contactada'?'#378ADD':sc==='nao_respondeu'?'#E24B4A':'#ddd';
+      var uc='b-'+p.unidade.toLowerCase();
+      var opts=STATUS_OPTS.map(function(o){return '<option value="'+o[0]+'"'+(p.status===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('');
+      html+='<div class="card'+(p.pri==='ALTA'?' alta':'')+'" style="border-left-color:'+bl+'">'+
+        '<div class="card-top">'+
+          '<div class="card-left">'+
+            '<div class="card-name">'+p.nome+'</div>'+
+            '<div class="badges">'+(p.pri==='ALTA'?'<span class="badge b-alta">alta prioridade</span>':'')+
+            '<span class="badge '+uc+'">'+p.unidade+'</span></div>'+
+            '<div class="meta">Última visita: '+p.ult+' · '+p.tipo+'</div>'+
+          '</div>'+
+          '<div class="card-right">'+
+            '<select class="status-sel" onchange="upd('+p.id+',\'status\',this.value)">'+opts+'</select>'+
+            '<a class="wa-btn" href="'+waLink(p)+'" target="_blank">'+WA_SVG+' WhatsApp</a>'+
+          '</div>'+
+        '</div>'+
+        '<div class="obs-row"><input class="obs-inp" type="text" value="'+p.obs.replace(/"/g,'&quot;')+'" placeholder="Observação..." oninput="upd('+p.id+',\'obs\',this.value)"></div>'+
+      '</div>';
+    });
+    html+='</div>';
+  });
+  if(!html)html='<p style="color:#999;font-size:14px;padding:1rem 0">Nenhuma paciente encontrada.</p>';
+  document.getElementById('lista').innerHTML=html;
+}
+function copiar(){
+  var m=document.getElementById('msg').value;
+  navigator.clipboard.writeText(m).then(function(){
+    var b=document.getElementById('copybtn');b.textContent='Copiado!';b.classList.add('ok');
+    setTimeout(function(){b.textContent='Copiar mensagem';b.classList.remove('ok');},2000);
+  });
+}
+document.getElementById('msg').addEventListener('input',function(){render();});
+load();updateStats();render();
+</script>
+</body>
+</html>
